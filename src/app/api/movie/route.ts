@@ -57,7 +57,7 @@ export async function GET(request: Request) {
               'Authorization': `Bearer ${openaiApiKey}`
             },
             body: JSON.stringify({
-              model: "gpt-5.1",
+              model: "gpt-4o",
               messages: [
                 {
                   role: "system",

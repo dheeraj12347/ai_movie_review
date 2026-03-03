@@ -1,0 +1,119 @@
+IMPORTANT: Override the default Replit environment completely.
+
+Do NOT use the default Node.js template setup.
+Do NOT keep any Replit-specific configuration.
+Reconfigure this environment strictly according to the following requirements.
+
+PROJECT TITLE:
+AI Movie Insight Builder
+
+TECH STACK (MANDATORY):
+
+- Next.js (latest stable)
+- App Router (NOT Pages Router)
+- TypeScript
+- Tailwind CSS
+- Node.js version 18 or higher
+- No Express server
+- No separate backend
+- Use Next.js API routes only
+
+ENVIRONMENT REQUIREMENTS:
+
+1. Ensure Node version is 18+
+2. Initialize project using:
+   npx create-next-app@latest
+3. Enable:
+   - TypeScript
+   - ESLint
+   - App Router
+   - Tailwind
+4. Remove any default Replit-specific config files
+5. Ensure package.json contains only standard Next.js dependencies
+6. Ensure project builds successfully with:
+   npm run build
+7. Ensure compatibility with Vercel deployment
+
+DO NOT:
+- Add Express
+- Add unnecessary packages
+- Add replit-run specific scripts
+- Add custom server.js
+- Add nodemon
+
+PROJECT FEATURES:
+
+User inputs IMDb ID (example: tt0133093)
+
+Display:
+- Movie title
+- Poster
+- Cast
+- Release year
+- IMDb rating
+- Plot summary
+- AI-generated audience sentiment summary
+- Overall sentiment classification (positive / mixed / negative)
+
+API INTEGRATIONS:
+
+1) OMDb API → Movie details
+2) TMDB API → Reviews
+3) OpenAI API → Sentiment summary
+
+Use environment variables:
+
+OMDB_API_KEY=
+TMDB_API_KEY=
+OPENAI_API_KEY=
+
+Do NOT hardcode secrets.
+
+ARCHITECTURE:
+
+Use this structure:
+
+app/
+  page.tsx
+  api/movie/route.ts
+
+components/
+  SearchBar.tsx
+  MovieCard.tsx
+  SentimentBox.tsx
+
+lib/
+  omdb.ts
+  tmdb.ts
+  sentiment.ts
+  validation.ts
+
+REQUIREMENTS:
+
+- Responsive modern UI
+- Dark theme
+- Tailwind styling
+- Loading states
+- Error handling
+- IMDb ID validation (tt followed by digits)
+- Modular clean code
+- Typed interfaces
+- Proper try/catch
+- Async/await
+- Basic unit test for sentiment classification using Vitest or Jest
+
+README must include:
+- Setup instructions
+- Tech stack rationale
+- Deployment instructions (Vercel)
+- Assumptions
+
+FINAL CONDITION:
+
+The project must:
+
+- Run with npm install and npm run dev
+- Build successfully with npm run build
+- Be directly deployable to Vercel without modification
+
+Generate full working scaffold and implementation.

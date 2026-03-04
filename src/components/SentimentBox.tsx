@@ -4,6 +4,7 @@ import { ThumbsUp, ThumbsDown, Minus, Sparkles } from "lucide-react";
 export interface SentimentAnalysis {
   summary: string;
   classification: "positive" | "mixed" | "negative";
+  reviewCount: number;
 }
 
 export function SentimentBox({ sentiment, isLoading }: { sentiment: SentimentAnalysis | null; isLoading: boolean }) {
@@ -26,27 +27,26 @@ export function SentimentBox({ sentiment, isLoading }: { sentiment: SentimentAna
       color: "text-emerald-400",
       bg: "bg-emerald-500/10",
       border: "border-emerald-500/20",
-      icon: ThumbsUp,
-      label: "Positive Reception"
+      icon: "👍",
+      label: "Positive"
     },
     mixed: {
       color: "text-amber-400",
       bg: "bg-amber-500/10",
       border: "border-amber-500/20",
-      icon: Minus,
-      label: "Mixed Reception"
+      icon: "😐",
+      label: "Mixed"
     },
     negative: {
       color: "text-red-400",
       bg: "bg-red-500/10",
       border: "border-red-500/20",
-      icon: ThumbsDown,
-      label: "Negative Reception"
+      icon: "👎",
+      label: "Negative"
     }
   };
 
   const config = classificationConfig[sentiment.classification];
-  const Icon = config.icon;
 
   return (
     <div className="w-full max-w-2xl mt-4 relative overflow-hidden">
@@ -62,26 +62,21 @@ export function SentimentBox({ sentiment, isLoading }: { sentiment: SentimentAna
         config.bg,
         config.border
       )}>
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className={cn("w-5 h-5", config.color)} />
-          <h3 className={cn("text-sm font-bold uppercase tracking-wider", config.color)}>
-            AI Audience Insight
-          </h3>
+        <div className="flex flex-col gap-1 mb-4">
+          <p className="text-xs font-medium text-white/40 uppercase tracking-widest">
+            Based on analysis of {sentiment.reviewCount} audience reviews
+          </p>
+          <div className="flex items-center gap-2">
+            <Sparkles className={cn("w-4 h-4", config.color)} />
+            <h3 className={cn("text-sm font-bold uppercase tracking-wider", config.color)}>
+              Sentiment: {config.label} {config.icon}
+            </h3>
+          </div>
         </div>
         
-        <p className="text-white/90 text-base leading-relaxed md:text-lg mb-4 font-medium">
+        <p className="text-white/90 text-base leading-relaxed md:text-lg font-medium italic">
           "{sentiment.summary}"
         </p>
-
-        <div className="flex items-center">
-          <span className={cn(
-            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold",
-            config.bg, config.color, "border border-current/20"
-          )}>
-            <Icon className="w-4 h-4" />
-            {config.label}
-          </span>
-        </div>
       </div>
     </div>
   );

@@ -35,7 +35,7 @@ export function MovieCard({ movie, isLoading }: { movie: MovieDetails | null; is
   if (!movie) return null;
 
   return (
-    <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-sm transition-all duration-300">
+    <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/10 group">
       <div className="flex flex-col sm:flex-row gap-6">
         <div className="w-full sm:w-[200px] shrink-0">
           {movie.poster ? (

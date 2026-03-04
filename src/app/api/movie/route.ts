@@ -43,6 +43,15 @@ export async function GET(request: Request) {
     // 3) OpenAI API → Sentiment summary
     let sentimentSummary = "No sufficient audience reviews found to generate sentiment.";
     let sentimentClassification: "positive" | "mixed" | "negative" = "mixed";
+    let reviewCount = 0;
+
+    if (tmdbMovie) {
+      const reviewsResponse = await fetch(`https://api.themoviedb.org/3/movie/${tmdbMovie.id}/reviews?api_key=${tmdbKey}`);
+      const reviewsData = await reviewsResponse.json();
+      const reviews = reviewsData.results || [];
+      reviewCount = reviews.length;
+      allReviewsText = reviews.slice(0, 5).map((r: any) => r.content).join("\n\n");
+    }
 
     if (allReviewsText.length > 50) {
       try {
@@ -61,37 +70,20 @@ export async function GET(request: Request) {
               messages: [
                 {
                   role: "system",
-                  content: `You are an AI movie review analyst.
+                  content: `You are an AI movie review analyst. Analyze the audience reviews and determine the overall sentiment.
 
-Your task is to analyze audience reviews of a movie and extract overall audience sentiment.
+Tasks:
+1. Identify common audience opinions.
+2. Summarize the overall reception in 3–4 concise sentences.
+3. Classify the overall sentiment into one of the following:
+   positive
+   mixed
+   negative
 
-You will receive several user reviews written by different viewers.
-
-Instructions:
-
-1. Read all reviews carefully.
-2. Identify the overall audience sentiment.
-3. Classify the sentiment into one of the following:
-   - positive
-   - mixed
-   - negative
-
-4. Write a short summary (3–4 sentences) explaining:
-   - what audiences liked
-   - what audiences disliked
-   - the overall perception of the movie.
-
-Important rules:
-
-- Be objective and concise.
-- Focus only on audience opinions from the reviews.
-- Do not invent information that is not present in the reviews.
-- If reviews are mostly positive but contain some criticism, classify as "mixed".
-
-Return your answer in this exact JSON format:
+Return your answer strictly in JSON format:
 
 {
-  "summary": "string",
+  "summary": "3-4 sentence audience insight summary",
   "sentiment": "positive | mixed | negative"
 }`
                 },
@@ -132,6 +124,7 @@ Return your answer in this exact JSON format:
       sentiment: {
         summary: sentimentSummary,
         classification: sentimentClassification,
+        reviewCount: reviewCount
       }
     };
 

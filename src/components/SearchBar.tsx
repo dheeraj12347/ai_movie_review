@@ -24,7 +24,7 @@ export function SearchBar({ onSearch, isLoading }: SearchBarProps) {
     }
 
     if (!/^tt\d+$/.test(trimmed)) {
-      setError("Invalid format. Must start with 'tt' followed by digits (e.g., tt0133093).");
+      setError("Please enter a valid IMDb ID (example: tt0133093)");
       return;
     }
 

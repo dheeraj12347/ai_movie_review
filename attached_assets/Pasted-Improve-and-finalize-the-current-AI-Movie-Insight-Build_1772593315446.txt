@@ -1,0 +1,177 @@
+Improve and finalize the current AI Movie Insight Builder project according to the hiring assignment requirements.
+
+Tech Stack Requirements (Do not change):
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- Next.js API Routes
+- No Express server
+- No database
+
+The application already fetches movie details from OMDb and reviews from TMDB and generates AI sentiment insights. Now improve the project with the following enhancements.
+
+------------------------------------
+
+1. Improve AI Sentiment Analysis
+
+Update the AI prompt to ensure the output is concise and structured.
+
+The AI should:
+- Analyze audience reviews
+- Generate a short 3–4 sentence summary
+- Classify sentiment as:
+  positive
+  mixed
+  negative
+
+Use this structured prompt:
+
+"You are an AI movie review analyst. Analyze the audience reviews and determine the overall sentiment.
+
+Tasks:
+1. Identify common audience opinions.
+2. Summarize the overall reception in 3–4 concise sentences.
+3. Classify the overall sentiment into one of the following:
+   positive
+   mixed
+   negative
+
+Return your answer strictly in JSON format:
+
+{
+  "summary": "3-4 sentence audience insight summary",
+  "sentiment": "positive | mixed | negative"
+}
+
+Audience reviews:
+{{REVIEWS}}"
+
+Ensure the API parses the JSON output safely.
+
+------------------------------------
+
+2. Improve Sentiment Display UI
+
+Update the SentimentBox component to display sentiment clearly with visual indicators:
+
+Positive → Green badge with 👍  
+Mixed → Yellow badge with 😐  
+Negative → Red badge with 👎  
+
+Example:
+
+Sentiment: Positive 👍
+
+Also show a small label above the summary:
+
+"Based on analysis of X audience reviews"
+
+------------------------------------
+
+3. Improve User Experience
+
+Add loading states while searching:
+
+Show messages like:
+
+"Fetching movie details..."
+"Analyzing audience sentiment with AI..."
+
+Display a loading spinner while the API request is processing.
+
+------------------------------------
+
+4. Improve Error Handling
+
+Handle the following cases gracefully:
+
+Invalid IMDb ID format  
+Movie not found  
+API failure  
+No reviews available
+
+Show clean UI messages instead of crashing.
+
+------------------------------------
+
+5. Add IMDb ID Validation
+
+Ensure user input matches this format:
+
+tt followed by digits
+
+Example regex:
+
+^tt\d+$
+
+If invalid, show error message:
+"Please enter a valid IMDb ID (example: tt0133093)"
+
+------------------------------------
+
+6. Improve UI Polish
+
+Enhance the design slightly:
+
+- Use a centered card layout
+- Add subtle hover animation to movie card
+- Ensure responsive design for mobile
+- Improve spacing and typography
+- Maintain a modern dark theme
+
+------------------------------------
+
+7. Improve README
+
+Update README.md with:
+
+Project Overview  
+Features  
+Tech Stack  
+Setup Instructions  
+Environment Variables  
+
+Example:
+
+OMDB_API_KEY=
+TMDB_API_KEY=
+
+
+Also include:
+
+Deployment instructions for Vercel.
+
+------------------------------------
+
+8. Ensure Deployment Compatibility
+
+Make sure the project:
+
+Runs with
+
+npm install
+npm run dev
+
+Builds successfully with
+
+npm run build
+
+Remove any Replit-specific configuration if present.
+
+------------------------------------
+
+9. Code Quality Improvements
+
+Ensure:
+
+- Proper TypeScript typing
+- Modular functions
+- Try/catch error handling
+- No hardcoded API keys
+- Use environment variables
+- Clean and readable code structure
+
+------------------------------------
+
+Goal:
+Finalize a polished, production-quality version of the AI Movie Insight Builder suitable for submission for a full-stack developer internship assignment.

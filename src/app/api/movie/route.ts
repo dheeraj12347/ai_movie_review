@@ -61,12 +61,38 @@ export async function GET(request: Request) {
               messages: [
                 {
                   role: "system",
-                  content: `You are an expert movie critic analyst. Summarize the following audience reviews into a 2-3 sentence engaging summary.
-Also classify the overall sentiment as strictly one of these three exact words: "positive", "mixed", or "negative".
-Return the response in JSON format like this:
+                  content: `You are an AI movie review analyst.
+
+Your task is to analyze audience reviews of a movie and extract overall audience sentiment.
+
+You will receive several user reviews written by different viewers.
+
+Instructions:
+
+1. Read all reviews carefully.
+2. Identify the overall audience sentiment.
+3. Classify the sentiment into one of the following:
+   - positive
+   - mixed
+   - negative
+
+4. Write a short summary (3–4 sentences) explaining:
+   - what audiences liked
+   - what audiences disliked
+   - the overall perception of the movie.
+
+Important rules:
+
+- Be objective and concise.
+- Focus only on audience opinions from the reviews.
+- Do not invent information that is not present in the reviews.
+- If reviews are mostly positive but contain some criticism, classify as "mixed".
+
+Return your answer in this exact JSON format:
+
 {
-  "summary": "The audience generally loved the thrilling action sequences...",
-  "classification": "positive"
+  "summary": "string",
+  "sentiment": "positive | mixed | negative"
 }`
                 },
                 {
@@ -82,7 +108,7 @@ Return the response in JSON format like this:
             const data = await completion.json();
             const parsedContent = JSON.parse(data.choices[0]?.message?.content || "{}");
             sentimentSummary = parsedContent.summary || sentimentSummary;
-            const c = parsedContent.classification?.toLowerCase();
+            const c = (parsedContent.sentiment || parsedContent.classification)?.toLowerCase();
             if (["positive", "mixed", "negative"].includes(c)) {
               sentimentClassification = c as any;
             }

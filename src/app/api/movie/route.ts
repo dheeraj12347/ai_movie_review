@@ -1,116 +1,142 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
+  const id = searchParams.get("id");
 
   if (!id || !/^tt\d+$/.test(id)) {
-    return NextResponse.json({ message: "Invalid IMDb ID. Must start with 'tt' followed by digits." }, { status: 400 });
+    return NextResponse.json(
+      { message: "Invalid IMDb ID. Must start with 'tt' followed by digits." },
+      { status: 400 }
+    );
   }
 
   try {
-    // 1) OMDb API → Movie details
+    /* =========================
+       1. FETCH MOVIE FROM OMDB
+    ==========================*/
+
     const omdbKey = process.env.OMDB_API_KEY;
+
     if (!omdbKey) {
-      throw new Error("OMDB_API_KEY is missing");
+      throw new Error("OMDB_API_KEY missing");
     }
 
-    const omdbResponse = await fetch(`https://www.omdbapi.com/?i=${id}&apikey=${omdbKey}`);
-    const omdbData = await omdbResponse.json();
+    const omdbRes = await fetch(
+      `https://www.omdbapi.com/?i=${id}&apikey=${omdbKey}`
+    );
+
+    const omdbData = await omdbRes.json();
 
     if (omdbData.Response === "False") {
-      return NextResponse.json({ message: "Movie not found on OMDb" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Movie not found on OMDb." },
+        { status: 404 }
+      );
     }
 
-    // 2) TMDB API → Reviews
+    /* =========================
+       2. FETCH REVIEWS FROM TMDB
+    ==========================*/
+
     const tmdbKey = process.env.TMDB_API_KEY;
+
     if (!tmdbKey) {
-      throw new Error("TMDB_API_KEY is missing");
+      throw new Error("TMDB_API_KEY missing");
     }
 
-    const tmdbFindResponse = await fetch(`https://api.themoviedb.org/3/find/${id}?external_source=imdb_id&api_key=${tmdbKey}`);
-    const tmdbFindData = await tmdbFindResponse.json();
+    const tmdbFindRes = await fetch(
+      `https://api.themoviedb.org/3/find/${id}?external_source=imdb_id&api_key=${tmdbKey}`
+    );
+
+    const tmdbFindData = await tmdbFindRes.json();
     const tmdbMovie = tmdbFindData.movie_results?.[0];
 
-    let allReviewsText = "";
-    if (tmdbMovie) {
-      const reviewsResponse = await fetch(`https://api.themoviedb.org/3/movie/${tmdbMovie.id}/reviews?api_key=${tmdbKey}`);
-      const reviewsData = await reviewsResponse.json();
-      const reviews = reviewsData.results || [];
-      allReviewsText = reviews.slice(0, 5).map((r: any) => r.content).join("\n\n");
-    }
-
-    // 3) OpenAI API → Sentiment summary
-    let sentimentSummary = "No sufficient audience reviews found to generate sentiment.";
-    let sentimentClassification: "positive" | "mixed" | "negative" = "mixed";
+    let reviews: string[] = [];
     let reviewCount = 0;
 
     if (tmdbMovie) {
-      const reviewsResponse = await fetch(`https://api.themoviedb.org/3/movie/${tmdbMovie.id}/reviews?api_key=${tmdbKey}`);
-      const reviewsData = await reviewsResponse.json();
-      const reviews = reviewsData.results || [];
+      const reviewsRes = await fetch(
+        `https://api.themoviedb.org/3/movie/${tmdbMovie.id}/reviews?api_key=${tmdbKey}`
+      );
+
+      const reviewsData = await reviewsRes.json();
+
+      reviews = (reviewsData.results || [])
+        .map((r: any) => r.content)
+        .filter((text: string) => text && text.length > 20)
+        .slice(0, 8);
+
       reviewCount = reviews.length;
-      allReviewsText = reviews.slice(0, 5).map((r: any) => r.content).join("\n\n");
     }
 
-    if (allReviewsText.length > 50) {
-      try {
-        const openaiApiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
-        const openaiBaseUrl = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
+    /* =========================
+       3. SENTIMENT ANALYSIS
+    ==========================*/
 
-        if (openaiApiKey && openaiBaseUrl) {
-          const completion = await fetch(`${openaiBaseUrl}/chat/completions`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${openaiApiKey}`
-            },
-            body: JSON.stringify({
-              model: "gpt-4o",
-              messages: [
-                {
-                  role: "system",
-                  content: `You are an AI movie review analyst. Analyze the audience reviews and determine the overall sentiment.
+    let sentimentSummary =
+      "Audience reactions are mixed, with viewers expressing both praise and criticism about the film.";
 
-Tasks:
-1. Identify common audience opinions.
-2. Summarize the overall reception in 3–4 concise sentences.
-3. Classify the overall sentiment into one of the following:
-   positive
-   mixed
-   negative
+    let sentimentClassification: "positive" | "mixed" | "negative" = "mixed";
 
-Return your answer strictly in JSON format:
+    if (reviews.length > 0) {
+      const text = reviews.join(" ").toLowerCase();
 
-{
-  "summary": "3-4 sentence audience insight summary",
-  "sentiment": "positive | mixed | negative"
-}`
-                },
-                {
-                  role: "user",
-                  content: allReviewsText
-                }
-              ],
-              response_format: { type: "json_object" }
-            })
-          });
+      const positiveWords = [
+        "great",
+        "amazing",
+        "excellent",
+        "love",
+        "masterpiece",
+        "fantastic",
+        "good",
+        "brilliant",
+        "awesome",
+      ];
 
-          if (completion.ok) {
-            const data = await completion.json();
-            const parsedContent = JSON.parse(data.choices[0]?.message?.content || "{}");
-            sentimentSummary = parsedContent.summary || sentimentSummary;
-            const c = (parsedContent.sentiment || parsedContent.classification)?.toLowerCase();
-            if (["positive", "mixed", "negative"].includes(c)) {
-              sentimentClassification = c as any;
-            }
-          }
-        }
-      } catch (e) {
-        console.error("OpenAI Error:", e);
-        sentimentSummary = "Error generating sentiment summary.";
+      const negativeWords = [
+        "bad",
+        "boring",
+        "terrible",
+        "slow",
+        "confusing",
+        "disappointing",
+        "waste",
+        "poor",
+      ];
+
+      let score = 0;
+
+      positiveWords.forEach((word) => {
+        if (text.includes(word)) score++;
+      });
+
+      negativeWords.forEach((word) => {
+        if (text.includes(word)) score--;
+      });
+
+      if (score > 1) {
+        sentimentClassification = "positive";
+      } else if (score < -1) {
+        sentimentClassification = "negative";
+      } else {
+        sentimentClassification = "mixed";
+      }
+
+      if (sentimentClassification === "positive") {
+        sentimentSummary =
+          "Audience reactions are largely positive, with many viewers praising the performances, visuals, and storytelling.";
+      }
+
+      if (sentimentClassification === "negative") {
+        sentimentSummary =
+          "Audience reactions are mostly negative, with viewers criticizing aspects such as pacing, story issues, or overall execution.";
       }
     }
+
+    /* =========================
+       4. RETURN RESULT
+    ==========================*/
 
     const result = {
       details: {
@@ -121,16 +147,21 @@ Return your answer strictly in JSON format:
         imdbRating: omdbData.imdbRating || "N/A",
         plot: omdbData.Plot || "N/A",
       },
+
       sentiment: {
         summary: sentimentSummary,
         classification: sentimentClassification,
-        reviewCount: reviewCount
-      }
+        reviewCount: reviewCount,
+      },
     };
 
     return NextResponse.json(result);
   } catch (error) {
     console.error("API Error:", error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
